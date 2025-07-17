@@ -32,6 +32,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS_STR = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',')]
 
+AUTHENTICATION_BACKENDS = [
+    # Dibutuhkan untuk login di admin Django dengan username/password
+    'django.contrib.auth.backends.ModelBackend',
+
+    # Dibutuhkan untuk login via social accounts (Google, dll)
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 # Application definition
 
@@ -202,6 +209,7 @@ REST_AUTH = {
     'JWT_AUTH_REFRESH_COOKIE': 'my-app-refresh-token',
     'JWT_AUTH_SAMESITE': 'None' if not DEBUG else 'Lax',
     'JWT_AUTH_SECURE': not DEBUG,
+    'SESSION_LOGIN': False,
 }
 
 SITE_ID = 1

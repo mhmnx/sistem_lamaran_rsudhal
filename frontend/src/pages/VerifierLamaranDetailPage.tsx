@@ -115,6 +115,23 @@ export default function VerifierLamaranDetailPage() {
             <CardHeader><CardTitle>Dokumen Pelamar</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-3">
+              {lamaran.pelamar_profile?.pas_foto_url && (
+                  <li className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                       <Checkbox 
+                         id="pas_foto" 
+                         checked={lamaran.dokumen?.is_pas_foto_verified}
+                         onCheckedChange={(checked) => handleChecklistChange(lamaran.dokumen.id, 'is_pas_foto_verified', Boolean(checked))}
+                       />
+                       <label htmlFor="pas_foto" className="capitalize text-sm">Pas Foto</label>
+                    </div>
+                    <a href={lamaran.pelamar_profile.pas_foto_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />Lihat
+                      </Button>
+                    </a>
+                  </li>
+                )}
                 {Object.entries(lamaran.dokumen || {}).map(([key, value]) => {
                   if (value && !key.startsWith('is_') && key !== 'id' && key !== 'lamaran') {
                     const statusKey = `is_${key}_verified`;

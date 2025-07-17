@@ -67,30 +67,32 @@ class PelamarProfileSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source='user.role', read_only=True)
     is_profile_complete = serializers.SerializerMethodField()
     has_active_application = serializers.SerializerMethodField()
+    pas_foto_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PelamarProfile
         fields = [
             'id', 'user', 'role', 'is_profile_complete', 'has_active_application',
-            'nama_lengkap', 'nik', 'tempat_lahir', 'tanggal_lahir', 
-            'jenis_kelamin', 'no_telepon', 'provinsi', 'kabupaten', 
-            'kecamatan', 'desa', 'alamat_lengkap', 'pendidikan_terakhir', 
-            'pas_foto'
+            'pas_foto_url', 'nama_lengkap', 'nik', 'tempat_lahir', 
+            'tanggal_lahir', 'jenis_kelamin', 'no_telepon', 'provinsi', 
+            'kabupaten', 'kecamatan', 'desa', 'alamat_lengkap', 
+            'pendidikan_terakhir', 'pas_foto'
         ]
     
     def get_is_profile_complete(self, obj):
-        # Logika untuk menentukan apakah profil lengkap.
-        # Pastikan obj.nik dan obj.no_telepon tidak None sebelum di-strip
-        nik = obj.nik or ""
-        no_telepon = obj.no_telepon or ""
-        alamat_lengkap = obj.alamat_lengkap or ""
-        
-        required_fields = [nik.strip(), no_telepon.strip(), alamat_lengkap.strip()]
-        return all(field != '' for field in required_fields)
+        required_fields = [obj.nik, obj.no_telepon, obj.alamat_lengkap]
+        return all(field is not None and field != '' for field in required_fields)
 
     def get_has_active_application(self, obj):
-        # Cek apakah ada lamaran yang dibuat oleh user ini
         return Lamaran.objects.filter(pelamar=obj.user).exists()
+
+    # PERBAIKAN UTAMA ADA DI SINI
+    def get_pas_foto_url(self, obj):
+        request = self.context.get('request')
+        # Tambahkan pengecekan apakah request ada
+        if request and obj.pas_foto and hasattr(obj.pas_foto, 'url'):
+            return request.build_absolute_uri(obj.pas_foto.url)
+        return None
 
 # Serializer utama untuk Lamaran (Detail View)
 class LamaranDetailSerializer(serializers.ModelSerializer):
@@ -149,7 +151,7 @@ class DokumenLamaranChecklistSerializer(serializers.ModelSerializer):
         # Hanya ekspos field verifikasi
         fields = [
             'is_surat_lamaran_verified', 'is_cv_verified', 'is_ijazah_verified',
-            'is_transkrip_nilai_verified', 'is_ktp_verified', 'is_str_verified'
+            'is_transkrip_nilai_verified', 'is_ktp_verified', 'is_str_verified','is_pas_foto_verified'
         ]
 
 class PengaturanCetakSerializer(serializers.ModelSerializer):
@@ -216,3 +218,10 @@ class PengumumanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Informasi
         fields = ['id', 'judul', 'tanggal_terbit', 'isi']
+        
+def get_pas_foto_url(self, obj):
+        # Membuat URL lengkap untuk foto
+        request = self.context.get('request')
+        if obj.pas_foto and hasattr(obj.pas_foto, 'url'):
+            return request.build_absolute_uri(obj.pas_foto.url)
+        return None

@@ -8,26 +8,23 @@ const api = axios.create({
 });
 
 function GoogleLoginButton() {
-  const { checkAuthStatus } = useAuth(); // <-- 2. Ambil fungsi checkAuthStatus
+  const { checkAuthStatus } = useAuth(); // <-- Ambil fungsi ini dari context
 
   const login = useGoogleLogin({
+    // Hapus `flow: 'auth-code'` agar hook mengembalikan access_token
     onSuccess: async (tokenResponse) => {
+      console.log("Menerima access token dari Google:", tokenResponse.access_token);
       try {
-        await api.post('/auth/google/', {
+        // Kirim 'access_token' ke backend
+        const response = await api.post('/auth/google/', {
           access_token: tokenResponse.access_token,
         });
         
-        console.log("Login ke backend berhasil. Memeriksa ulang status auth...");
+        console.log("Respon dari backend:", response.data);
+        await checkAuthStatus(); // Jangan lupa panggil ini untuk refresh status login
         
-        // 3. Panggil checkAuthStatus untuk memperbarui state aplikasi
-        await checkAuthStatus(); 
-        
-        // Anda tidak perlu alert lagi, redirect akan terjadi secara otomatis
-        // alert("Login Berhasil!");
-
       } catch (error) {
         console.error("Gagal menukar token:", error);
-        alert("Login Gagal. Cek console untuk detail.");
       }
     },
     onError: (error) => {
@@ -38,9 +35,9 @@ function GoogleLoginButton() {
   return (
     <button
       onClick={() => login()}
-      className="px-4 py-2 bg-neutral-900 text-white rounded hover:bg-neutral-900"
+      className="px-4 py-2 bg-white text-black rounded hover:bg-indigo-600 hover:text-white transition-colors"
     >
-      Sign in with Google 🚀
+      Lamar Sekarang 🚀
     </button>
   );
 }

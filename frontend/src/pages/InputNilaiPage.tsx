@@ -192,20 +192,33 @@ export default function InputNilaiPage() {
       const initialRow = initialData[rowIndex];
       if (!initialRow) return;
 
-      // Cek perubahan nilai tes
-      row.nilai_tes.forEach((nilai: any) => {
-        const initialNilai = initialRow.nilai_tes.find((n: any) => n.jenis_tes === nilai.jenis_tes)?.nilai;
-        if (nilai.nilai !== initialNilai) {
-          payload.push({ lamaran_id: row.id, jenis_tes: nilai.jenis_tes, nilai: nilai.nilai });
+      // Cek perubahan pada setiap nilai tes
+      JENIS_TES_LIST.forEach(jenisTes => {
+        const currentNilaiObj = row.nilai_tes.find((n: any) => n.jenis_tes === jenisTes);
+        const initialNilaiObj = initialRow.nilai_tes.find((n: any) => n.jenis_tes === jenisTes);
+        
+        const currentNilai = currentNilaiObj ? currentNilaiObj.nilai : 0;
+        const initialNilai = initialNilaiObj ? initialNilaiObj.nilai : 0;
+
+        if (currentNilai !== initialNilai) {
+          nilaiPayload.push({ 
+            lamaran_id: row.id, 
+            jenis_tes: jenisTes, 
+            nilai: currentNilai 
+          });
         }
       });
       
-      // Cek perubahan status kelulusan dan keterangan
+      // Cek perubahan pada status kelulusan dan keterangan
       if (row.status_kelulusan !== initialRow.status_kelulusan || row.keterangan !== initialRow.keterangan) {
+        // PERBAIKAN UTAMA DI SINI
         lamaranPayload.push({
           id: row.id,
-          status_kelulusan: row.status_kelulusan,
-          keterangan: row.keterangan,
+          // Bungkus data dalam 'pelamar_profile'
+          pelamar_profile: { 
+            status_kelulusan: row.status_kelulusan,
+            keterangan: row.keterangan,
+          }
         });
       }
     });
@@ -214,23 +227,27 @@ export default function InputNilaiPage() {
       return toast({ title: "Info", description: "Tidak ada perubahan untuk disimpan." });
     }
 
-    // Kirim request ke API secara bersamaan
+    // Kirim request ke API jika ada perubahan
     try {
       const promises = [];
       if (nilaiPayload.length > 0) {
         promises.push(api.post('/v1/lamaran/bulk-update-nilai/', nilaiPayload));
       }
       if (lamaranPayload.length > 0) {
-        promises.push(api.post('/v1/lamaran/bulk-update/', lamaranPayload));
+        // Gunakan endpoint PATCH yang sudah ada untuk update lamaran
+        // Kita akan mengirim satu per satu untuk sementara
+        lamaranPayload.forEach(payload => {
+            promises.push(api.patch(`/v1/lamaran/${payload.id}/`, payload));
+        });
       }
       
       await Promise.all(promises);
 
-      toast({ title: "Sukses", description: "Semua perubahan berhasil disimpan." });
-      // Muat ulang data untuk sinkronisasi
-      fetchData(); 
+      toast({ title: "Sukses!", description: "Semua perubahan berhasil disimpan." });
+      fetchData(); // Muat ulang data untuk sinkronisasi
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal", description: "Tidak dapat menyimpan semua perubahan." });
+      console.error("Gagal menyimpan perubahan:", error);
     }
   };
   
@@ -354,62 +371,119 @@ export default function InputNilaiPage() {
   
   // Definisi kolom dipindahkan ke useMemo agar tidak dibuat ulang setiap render
   const columns = useMemo(() => {
-    // 1. Definisikan kolom dasar yang selalu ada
     const baseColumns: ColumnDef<any>[] = [
       {
-        accessorKey: 'pelamar_profile.nama_lengkap',
-        header: ({ column }) => (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            Nama Lengkap <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
+        accessorKey: "pelamar_profile.nama_lengkap",
+        header: "Nama Lengkap",
       },
     ];
 
-    // 2. Buat array kosong untuk kolom nilai
     let nilaiColumns: ColumnDef<any>[] = [];
     const userRole = user?.role;
 
-    // 3. Isi kolom nilai berdasarkan peran pengguna
+    const createSortableHeader = (title: string) => ({ column }: any) => (
+      <Button
+        variant="ghost"
+        // Gunakan handler bawaan dari TanStack Table
+        onClick={column.getToggleSortingHandler()}
+      >
+        {title}
+        {/* Tampilkan ikon berdasarkan status sortir */}
+        {column.getIsSorted() === 'asc' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+        {column.getIsSorted() === 'desc' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+        {!column.getIsSorted() && <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />}
+      </Button>
+    );
+    // Fungsi helper untuk menyimpan nilai individu
+    const saveNilai = async (lamaranId: number, field: string, value: any) => {
+      try {
+        let response;
+        // Tentukan endpoint berdasarkan field yang diubah
+        if (JENIS_TES_LIST.includes(field)) {
+          response = await api.post(`/v1/lamaran/${lamaranId}/nilai/upsert/`, { jenis_tes: field, nilai: parseFloat(value) || 0 });
+        } else {
+          response = await api.patch(`/v1/lamaran/${lamaranId}/`, { [field]: value });
+        }
+        
+        toast({ title: "Tersimpan", description: `Perubahan pada ${field.replace('_', ' ')} berhasil disimpan.` });
+        // Perbarui state lokal dengan data dari respons untuk sinkronisasi
+        fetchData();
+      } catch (error) {
+        toast({ variant: "destructive", title: "Gagal", description: `Tidak dapat menyimpan perubahan.` });
+        console.error("Gagal menyimpan perubahan:", error);
+      }
+    };
+
     if (userRole === 'penilai_wawancara') {
-      nilaiColumns = [
-        {
-          id: 'wawancara',
-          header: 'Nilai Wawancara',
+      nilaiColumns = [{
+        id: 'wawancara',
+        header: createSortableHeader('Wawancara'),
+        // accessorFn dibutuhkan untuk sorting
+        accessorFn: (row: any) => row.nilai_tes.find((n: any) => n.jenis_tes === 'wawancara')?.nilai || 0,
           cell: ({ row }) => {
-            const value = row.original.nilai_tes.find((n: any) => n.jenis_tes === 'wawancara')?.nilai || '';
-            return <Input type="number" defaultValue={value} onBlur={(e) => updateData(row.index, 'wawancara', e.target.value)} className="w-24" />;
+            const initialValue = row.original.nilai_tes.find((n: any) => n.jenis_tes === 'wawancara')?.nilai || '';
+            return (
+              <Input
+                type="number"
+                defaultValue={initialValue}
+                // onBlur akan langsung menyimpan nilai
+                onBlur={(e) => saveNilai(row.original.id, 'wawancara', e.target.value)}
+                className="w-24"
+              />
+            );
           },
         },
       ];
     } else if (userRole === 'penilai_keterampilan') {
-      nilaiColumns = [
-        {
-          id: 'keterampilan',
-          header: 'Nilai Keterampilan',
+      nilaiColumns = [{
+        id: 'keterampilan',
+        header: createSortableHeader('Keterampilan'),
+        // accessorFn dibutuhkan untuk sorting
+        accessorFn: (row: any) => row.nilai_tes.find((n: any) => n.jenis_tes === 'keterampilan')?.nilai || 0,
           cell: ({ row }) => {
-            const value = row.original.nilai_tes.find((n: any) => n.jenis_tes === 'keterampilan')?.nilai || '';
-            return <Input type="number" defaultValue={value} onBlur={(e) => updateData(row.index, 'keterampilan', e.target.value)} className="w-24" />;
+            const initialValue = row.original.nilai_tes.find((n: any) => n.jenis_tes === 'keterampilan')?.nilai || '';
+            return (
+              <Input
+                type="number"
+                defaultValue={initialValue}
+                // onBlur akan langsung menyimpan nilai
+                onBlur={(e) => saveNilai(row.original.id, 'keterampilan', e.target.value)}
+                className="w-24"
+              />
+            );
           },
         },
       ];
     } else if (userRole === 'verifikator' || userRole === 'superadmin') {
-      // Jika verifikator/superadmin, tampilkan semua kolom nilai
+      // Untuk verifikator/superadmin, buat semua kolom nilai bisa disortir
       nilaiColumns = JENIS_TES_LIST.map(jenisTes => ({
         id: jenisTes,
-        header: jenisTes.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        header: createSortableHeader(jenisTes.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+        // accessorFn dibutuhkan untuk sorting
+        accessorFn: (row: any) => row.nilai_tes.find((n: any) => n.jenis_tes === jenisTes)?.nilai || 0,
         cell: ({ row }: any) => {
           const value = row.original.nilai_tes.find((n: any) => n.jenis_tes === jenisTes)?.nilai || '';
-          return <Input type="number" defaultValue={value} onBlur={(e) => updateData(row.index, jenisTes, e.target.value)} className="w-24" />;
-        },
+          return (
+            <Input
+              type="number"
+              defaultValue={value}
+              className="w-24"
+              onBlur={(e) => {
+                const newValue = e.target.value;
+                updateData(row.index, jenisTes, newValue);      // Update lokal
+                saveNilai(row.original.id, jenisTes, newValue); // Simpan ke backend
+              }}
+            />
+          );
+        }
       }));
     }
     
-    // 4. Kolom akhir yang hanya tampil untuk verifikator/superadmin
     const finalColumns: ColumnDef<any>[] = (userRole === 'verifikator' || userRole === 'superadmin') ? [
       {
         id: 'total_nilai',
-        header: 'Total Nilai',
+        header: createSortableHeader('Total Nilai'),
+        accessorFn: (row: any) => row.nilai_tes.reduce((sum: number, n: any) => sum + (n.nilai || 0), 0),
         cell: ({ row }) => {
           const total = row.original.nilai_tes.reduce((sum: number, n: any) => sum + (n.nilai || 0), 0);
           return <div className="font-bold text-center">{total.toFixed(2)}</div>;
@@ -417,14 +491,20 @@ export default function InputNilaiPage() {
       },
       {
         accessorKey: 'status_kelulusan',
-        header: 'Status Lulus',
-        cell: ({ row }: any) => {
+        header: createSortableHeader('Status Lulus'),
+        cell: ({ row }) => {
+          const value = row.original.status_kelulusan;
           return (
-            <Select 
-              value={row.original.status_kelulusan || ''} 
-              onValueChange={(value) => updateData(row.index, 'status_kelulusan', value)}
+            <Select
+              defaultValue={value}
+              onValueChange={(newValue) => {
+                updateData(row.index, 'status_kelulusan', newValue);       // update lokal
+                saveNilai(row.original.id, 'status_kelulusan', newValue);  // simpan ke backend
+              }}
             >
-              <SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="lulus">Lulus</SelectItem>
                 <SelectItem value="tidak_lulus">Tidak Lulus</SelectItem>
@@ -436,21 +516,26 @@ export default function InputNilaiPage() {
       {
         accessorKey: 'keterangan',
         header: 'Keterangan',
-        cell: ({ row }: any) => {
+        cell: ({ row }) => {
+          const value = row.original.keterangan;
           return (
             <Input 
-              value={row.original.keterangan || ''} 
-              onChange={(e) => updateData(row.index, 'keterangan', e.target.value)} 
+              defaultValue={value}
+              onBlur={(e) => {
+                const val = e.target.value;
+                updateData(row.index, 'keterangan', val);           // update lokal
+                saveNilai(row.original.id, 'keterangan', val);      // simpan ke backend
+              }}
             />
           );
         }
-      },
+      }
+      
     ] : [];
 
-    // 5. Gabungkan semua kolom menjadi satu array akhir
     return [...baseColumns, ...nilaiColumns, ...finalColumns];
 
-  }, [data, user, updateData]); // <-- Penting: tambahkan 'data' sebagai dependensi
+  }, [data, user, updateData, toast]); // <-- Penting: tambahkan 'data' sebagai dependensi
 
 
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel(), onSortingChange: setSorting, state: { sorting } });

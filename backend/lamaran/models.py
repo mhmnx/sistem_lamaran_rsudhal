@@ -114,7 +114,8 @@ class DokumenLamaran(models.Model):
     is_transkrip_nilai_verified = models.BooleanField(default=False)
     is_ktp_verified = models.BooleanField(default=False)
     is_str_verified = models.BooleanField(default=False)
-    
+    is_pas_foto_verified = models.BooleanField(default=False)
+     
     def __str__(self):
         return f"Dokumen untuk lamaran {self.lamaran}"
     

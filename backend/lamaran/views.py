@@ -122,13 +122,26 @@ class VerifierLamaranDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, CanViewInternalData]
 
     def update(self, request, *args, **kwargs):
+        # Dapatkan instance Lamaran yang akan di-update
         instance = self.get_object()
-        profile_data = request.data.pop('pelamar_profile', None)
+        
+        # Ambil data profil dari payload request
+        profile_data = request.data.get('pelamar_profile', None)
+        
+        # Jika ada data profil yang dikirim, update profilnya
         if profile_data:
-            profile_serializer = PelamarProfileSerializer(instance.pelamar.profile, data=profile_data, partial=True)
+            profile_instance = instance.pelamar.profile
+            profile_serializer = PelamarProfileSerializer(profile_instance, data=profile_data, partial=True)
             profile_serializer.is_valid(raise_exception=True)
             profile_serializer.save()
-        return super().update(request, *args, **kwargs)
+            
+        # Selain itu, update juga field lain di Lamaran jika ada (misal: status, keterangan)
+        lamaran_serializer = self.get_serializer(instance, data=request.data, partial=True)
+        lamaran_serializer.is_valid(raise_exception=True)
+        self.perform_update(lamaran_serializer)
+
+        # Kembalikan data Lamaran yang sudah diperbarui secara lengkap
+        return Response(self.get_serializer(instance).data)
     
 class LamaranUpdateStatusView(generics.UpdateAPIView):
     queryset = Lamaran.objects.all()
@@ -557,32 +570,55 @@ class InformasiListView(generics.ListAPIView):
 class NilaiTesBulkUpdateView(APIView):
     """
     Endpoint untuk menerima banyak data nilai dan menyimpannya dalam satu transaksi.
+    Kini dengan validasi per item.
     """
     permission_classes = [permissions.IsAuthenticated, CanViewInternalData]
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        # Ekspektasi data: [{"lamaran_id": 1, "jenis_tes": "tes_cat", "nilai": 85}, ...]
         updates = request.data
         if not isinstance(updates, list):
             return Response({"error": "Input harus berupa list."}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            for item in updates:
-                lamaran = get_object_or_404(Lamaran, pk=item.get('lamaran_id'))
+        errors = []
+        
+        for index, item in enumerate(updates):
+            try:
+                # --- Validasi setiap item ---
+                lamaran_id = item.get('lamaran_id')
+                jenis_tes = item.get('jenis_tes')
+                nilai = item.get('nilai')
+
+                if lamaran_id is None or jenis_tes is None or nilai is None:
+                    errors.append(f"Item #{index + 1}: Data tidak lengkap (membutuhkan lamaran_id, jenis_tes, nilai).")
+                    continue
                 
-                # Gunakan update_or_create untuk efisiensi
+                # Coba konversi nilai ke float
+                try:
+                    nilai_float = float(nilai)
+                except (ValueError, TypeError):
+                    errors.append(f"Item #{index + 1}: Nilai '{nilai}' untuk '{jenis_tes}' tidak valid.")
+                    continue
+
+                # --- Proses simpan jika valid ---
+                lamaran = get_object_or_404(Lamaran, pk=lamaran_id)
+                
                 NilaiTes.objects.update_or_create(
                     lamaran=lamaran,
-                    jenis_tes=item.get('jenis_tes'),
+                    jenis_tes=jenis_tes,
                     defaults={
-                        'nilai': item.get('nilai'),
+                        'nilai': nilai_float,
                         'dicatat_oleh': request.user
                     }
                 )
-            return Response({"status": "Semua nilai berhasil disimpan."}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": f"Terjadi kesalahan: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                errors.append(f"Item #{index + 1}: Terjadi kesalahan - {str(e)}")
+
+        if errors:
+            return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({"status": "Semua nilai berhasil disimpan."}, status=status.HTTP_200_OK)
+
         
 class LamaranBulkUpdateView(APIView):
     """
