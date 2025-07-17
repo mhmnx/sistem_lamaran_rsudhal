@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 const api = axios.create({ 
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api', 
@@ -24,7 +25,7 @@ export default function ApplyPage() {
   const navigate = useNavigate();
   const [files, setFiles] = useState<FilesState>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { checkAuthStatus } = useAuth();
   // Fungsi untuk menangani perubahan pada input file
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files: inputFiles } = e.target;
@@ -58,8 +59,10 @@ export default function ApplyPage() {
         },
       });
       alert('Lamaran berhasil diajukan!');
+
+      await checkAuthStatus();
       // Arahkan pengguna kembali ke halaman formasi setelah berhasil
-      navigate('/formasi');
+      navigate('/dashboard');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         alert(`Gagal mengajukan lamaran: ${JSON.stringify(error.response.data)}`);

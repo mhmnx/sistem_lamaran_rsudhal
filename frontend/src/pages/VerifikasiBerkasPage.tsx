@@ -75,9 +75,14 @@ export default function VerifikasiBerkasPage() {
                   <TableCell>{lamaran.formasi.nama_formasi}</TableCell>
                   {/* TAMPILKAN STATUS DENGAN BADGE */}
                   <TableCell>
-                    <Badge variant={getStatusVariant(lamaran.status)} className="capitalize">
-                      {lamaran.status.replace('_', ' ')}
-                    </Badge>
+                  <Badge 
+                  className={`capitalize ${
+                    lamaran.status.includes('lolos') ? 'bg-green-100 text-green-800' : 
+                    lamaran.status.includes('gagal') || lamaran.status.includes('ditolak') ? 'bg-red-100 text-red-800' : ''
+                  }`}
+                  >
+                  {lamaran.status.replace('_', ' ')}
+                </Badge>
                   </TableCell>
                   <TableCell>
                     <Link to={`/verifier/lamaran/${lamaran.id}`} className="text-indigo-600 hover:underline font-semibold">

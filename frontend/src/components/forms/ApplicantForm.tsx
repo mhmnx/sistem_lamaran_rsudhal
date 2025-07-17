@@ -71,17 +71,32 @@ export default function ApplicantForm({ onSuccess, initialData }: ApplicantFormP
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+    const dataToSend = new FormData();
+
     try {
       if (isEditMode) {
-        const profileData = { ...formData };
-        delete profileData.email;
-        delete profileData.formasi;
-        
-        await api.patch(`/v1/lamaran/${initialData.id}/`, { pelamar_profile: profileData });
+        // ===============================================
+        // PERBAIKAN LOGIKA UNTUK MODE EDIT
+        // ===============================================
+        const profileData: any = {};
+        // Kumpulkan hanya data teks dari form
+        Object.keys(formData).forEach(key => {
+          // Jangan kirim field file atau field yang tidak relevan
+          if (key !== 'pas_foto' && key !== 'pas_foto_url' && key !== 'user' && key !== 'id') {
+            profileData[key] = formData[key];
+          }
+        });
+
+        // Kirim data dalam format nested yang diharapkan backend
+        // `pelamar_profile` hanya akan berisi data teks
+        await api.patch(`/v1/lamaran/${initialData.id}/`, {
+          pelamar_profile: profileData
+        });
+
         toast({ title: "Sukses", description: "Data pelamar berhasil diperbarui." });
+
       } else {
-        const dataToSend = new FormData();
+        // Logika CREATE (POST) tetap sama
         for (const key in formData) { if (formData[key]) dataToSend.append(key, formData[key]); }
         dataToSend.append('formasi_id', formData.formasi);
         

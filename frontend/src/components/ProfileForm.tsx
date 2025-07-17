@@ -18,11 +18,16 @@ const api = axios.create({
   withCredentials: true 
 });
 
+interface ProfileFormData {
+  [key: string]: any;
+}
+
+
 export default function ProfileForm() {
   const { user, checkAuthStatus } = useAuth();
   const navigate = useNavigate(); // <-- 3. Inisialisasi hook navigasi
   const { toast } = useToast(); // <-- 4. Inisialisasi hook toast
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     nama_lengkap: '',
     nik: '',
     tempat_lahir: '',
@@ -88,9 +93,7 @@ export default function ProfileForm() {
     if (pasFotoFile) {
       dataToSend.append('pas_foto', pasFotoFile);
     }
-
     try {
-      // Kirim sebagai multipart/form-data
       await api.put('/me/', dataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -121,11 +124,9 @@ export default function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Bagian Pas Foto */}
-      <div className="font-bold border-b pb-2">Pas Foto</div>
       <div className="flex items-center gap-6">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={user?.pas_foto_url} alt="Pas Foto" />
+        <AvatarImage src={user?.pas_foto_url || ''} alt="Pas Foto" />
           <AvatarFallback>{user?.nama_lengkap?.charAt(0) || 'P'}</AvatarFallback>
         </Avatar>
         <div className="space-y-2">

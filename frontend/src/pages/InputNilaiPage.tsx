@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
-import { useReactToPrint } from 'react-to-print';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { Save } from 'lucide-react'; // Impor ikon untuk tomb
+import type { ColumnDef } from '@tanstack/react-table';
 
 const api = axios.create({ 
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api', 

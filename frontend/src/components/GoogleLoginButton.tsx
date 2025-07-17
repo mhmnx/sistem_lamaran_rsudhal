@@ -8,23 +8,25 @@ const api = axios.create({
 });
 
 function GoogleLoginButton() {
-  const { checkAuthStatus } = useAuth(); // <-- Ambil fungsi ini dari context
+  const { checkAuthStatus } = useAuth();
 
   const login = useGoogleLogin({
-    // Hapus `flow: 'auth-code'` agar hook mengembalikan access_token
+    // 1. Hapus `flow: 'auth-code'` agar kita mendapatkan access_token
     onSuccess: async (tokenResponse) => {
       console.log("Menerima access token dari Google:", tokenResponse.access_token);
       try {
-        // Kirim 'access_token' ke backend
+        // 2. Kirim 'access_token' ke backend, bukan 'code'
         const response = await api.post('/auth/google/', {
           access_token: tokenResponse.access_token,
         });
         
         console.log("Respon dari backend:", response.data);
-        await checkAuthStatus(); // Jangan lupa panggil ini untuk refresh status login
         
+        // 3. Panggil checkAuthStatus untuk memperbarui status di seluruh aplikasi
+        await checkAuthStatus();
+
       } catch (error) {
-        console.error("Gagal menukar token:", error);
+        console.error("Gagal menukar kode dengan token:", error);
       }
     },
     onError: (error) => {

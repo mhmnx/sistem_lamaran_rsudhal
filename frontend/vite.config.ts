@@ -12,6 +12,6 @@ export default defineConfig({
   server: { // <-- TAMBAHKAN BLOK INI
     host: true, // Agar bisa diakses dari luar localhost
 
-    allowedHosts: ['.ngrok-free.app'] 
+    allowedHosts: ['.http://103.196.153.4'] 
   }
 })

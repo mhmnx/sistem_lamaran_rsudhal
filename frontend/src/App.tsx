@@ -8,9 +8,6 @@ import VerifierProtectedRoute from './components/auth/VerifierProtectedRoute';
 import { ApplicantLayout } from './components/layout/ApplicantLayout';
 import { Toaster } from "@/components/ui/toaster" // <-- 1. Impor Toaster
 // Impor semua halaman
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import PelamarDashboardPage from './pages/PelamarDashboardPage';
 import FormasiPage from './pages/FormasiPage';
 import ApplyPage from './pages/ApplyPage';
 import VerifierDashboardPage from './pages/VerifierDashboardPage';
@@ -25,14 +22,14 @@ import VerifierLamaranDetailPage from './pages/VerifierLamaranDetailPage';
 import LandingPage from './pages/LandingPage';
 
 function App() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Router>
       <Routes>
         {/* Rute Publik & Pintu Gerbang */}
-        <Route path="/login" element={!isAuthenticated ? <LandingPage /> : <Navigate to="/" />} />
-        <Route path="/" element={isAuthenticated ? <HomePage /> : <LandingPage />} />
+        <Route path="/login" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         
         {/* --- STRUKTUR BARU UNTUK PELAMAR --- */}
         <Route element={isAuthenticated ? <ApplicantLayout /> : <Navigate to="/login" />}>

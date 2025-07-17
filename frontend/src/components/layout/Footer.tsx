@@ -1,8 +1,7 @@
 // frontend/src/components/layout/Footer.tsx
 
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Globe, Youtube } from 'lucide-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Facebook, Instagram, Mail, Phone, MapPin, Globe, Youtube } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Briefcase, Bell, Hospital, Target, Award, Building, MapPin, LogIn, User, CheckSquare, FileText, BellRing, Trophy, Mail, Phone } from 'lucide-react';
+import { Users, Briefcase, Bell, Target, Award, Building, MapPin, LogIn, User, FileText, BellRing, Trophy, Mail, Phone } from 'lucide-react';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import Footer from '@/components/layout/Footer';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input"; // Impor komponen tambahan
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import LandingPageHeader from '@/components/layout/LandingPageHeader'; // <-- 1. Impor header baru
-
+import { useNavigate } from 'react-router-dom'; // 1. Impor useNavigate
+import { useAuth } from '@/contexts/AuthContext'; // 2. Impor useAuth
 
 const api = axios.create({ 
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api', 
@@ -75,26 +76,49 @@ const handleHelpdeskSubmit = (e: React.FormEvent) => {
   // TODO: Implementasi logika pengiriman form (misal: menggunakan Formspree atau endpoint API email)
 };
 export default function LandingPage() {
-    const [stats, setStats] = useState<any>(null);
-    const [announcements, setAnnouncements] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-     
+  const [stats, setStats] = useState<any>(null);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Panggil hook untuk navigasi dan autentikasi
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Ambil data statistik dan pengumuman
+    // useEffect untuk mengambil data publik
     const fetchData = async () => {
       try {
         const [statsRes, announcementsRes] = await Promise.all([
           api.get('/public/dashboard-stats/'),
-          api.get('public/pengumuman/')
+          api.get('/public/pengumuman/')
         ]);
         setStats(statsRes.data);
         setAnnouncements(announcementsRes.data);
       } catch (error) {
         console.error("Gagal memuat data landing page:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
+
+  // 3. TAMBAHKAN useEffect BARU INI UNTUK MENANGANI REDIRECT
+  useEffect(() => {
+    // Jika user sudah login, jalankan logika pengalihan
+    if (isAuthenticated && user) {
+      const internalRoles = ['verifikator', 'superadmin', 'penilai_wawancara', 'penilai_keterampilan'];
+      if (internalRoles.includes(user.role)) {
+        navigate('/verifier/dashboard');
+      } else {
+        navigate('/pelamar/dashboard');
+      }
+    }
+    // Jika tidak login, biarkan landing page ditampilkan
+  }, [isAuthenticated, user, navigate]);
+
+
+  // 4. Jika user sudah login, tampilkan pesan loading saat proses redirect
 
   return (
     <div id="hero-section" className="bg-slate-50">

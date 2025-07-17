@@ -1,15 +1,13 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams} from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Download } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox" // <-- Impor Checkbox
+import type { FormEvent } from 'react';
 
 const api = axios.create({ 
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api', 
