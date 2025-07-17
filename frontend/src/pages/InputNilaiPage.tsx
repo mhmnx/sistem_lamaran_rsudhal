@@ -313,16 +313,13 @@ export default function InputNilaiPage() {
     // Fungsi helper untuk menyimpan nilai individu
     const saveNilai = async (lamaranId: number, field: string, value: any) => {
       try {
-        let response;
-        // Tentukan endpoint berdasarkan field yang diubah
         if (JENIS_TES_LIST.includes(field)) {
-          response = await api.post(`/v1/lamaran/${lamaranId}/nilai/upsert/`, { jenis_tes: field, nilai: parseFloat(value) || 0 });
+          await api.post(`/v1/lamaran/${lamaranId}/nilai/upsert/`, { jenis_tes: field, nilai: parseFloat(value) || 0 });
         } else {
-          response = await api.patch(`/v1/lamaran/${lamaranId}/`, { [field]: value });
+          await api.patch(`/v1/lamaran/${lamaranId}/`, { [field]: value });
         }
         
         toast({ title: "Tersimpan", description: `Perubahan pada ${field.replace('_', ' ')} berhasil disimpan.` });
-        // Perbarui state lokal dengan data dari respons untuk sinkronisasi
         fetchData();
       } catch (error) {
         toast({ variant: "destructive", title: "Gagal", description: `Tidak dapat menyimpan perubahan.` });

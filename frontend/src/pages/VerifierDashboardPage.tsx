@@ -15,7 +15,6 @@ const api = axios.create({
 });
 
 // Definisikan interface agar kode lebih rapi
-interface Formasi { id: number; nama_formasi: string; }
 
 export default function VerifierDashboardPage() {
   const [stats, setStats] = useState<any>(null); // State untuk menampung semua statistik

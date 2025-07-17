@@ -32,11 +32,6 @@ export default function VerifikasiBerkasPage() {
 
   }, [selectedFormasi]);
 
-  const getStatusVariant = (status: string) => {
-    if (status.includes('lolos')) return 'success';
-    if (status.includes('gagal') || status.includes('ditolak')) return 'destructive';
-    return 'default';
-  };
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Verifikasi Berkas</h1>
