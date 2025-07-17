@@ -21,41 +21,6 @@ const api = axios.create({
 const JENIS_TES_LIST = ['tes_cat', 'keterampilan', 'psikotest', 'wawancara'];
 
 
-const NilaiInput = ({ lamaranId, jenisTes, initialValue }: any) => {
-  const [nilai, setNilai] = useState(initialValue);
-  const { toast } = useToast(); // Inisialisasi hook toast
-
-  const handleSave = async () => {
-    // Jangan kirim request jika nilainya tidak berubah
-    if (nilai === initialValue || nilai === '') return;
-
-    try {
-      await api.post(`/v1/lamaran/${lamaranId}/nilai/upsert/`, {
-        jenis_tes: jenisTes,
-        nilai: parseFloat(nilai),
-      });
-
-      // Tampilkan notifikasi sukses
-      toast({
-        title: "Sukses",
-        description: `Nilai untuk ${jenisTes.replace('_',' ')} berhasil disimpan.`,
-      });
-
-    } catch (err) {
-      console.error("Gagal simpan nilai", err);
-      // Tampilkan notifikasi error
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Tidak dapat menyimpan nilai."
-      });
-    }
-  };
-  
-  return <Input type="number" step="0.01" value={nilai} onChange={e => setNilai(e.target.value)} onBlur={handleSave} className="w-24" />;
-};
-
-
   
 // Tipe data untuk kolom
 type LamaranData = {
@@ -67,54 +32,6 @@ type LamaranData = {
 }
 
 // Komponen input yang bisa dipakai ulang untuk nilai dan keterangan
-const EditableCell = ({ lamaranId, field, initialValue, type = 'text' }: any) => {
-  const [value, setValue] = useState(initialValue || '');
-  const { toast } = useToast(); // Inisialisasi hook toast
-
-  const handleSave = async () => {
-    if (value === initialValue) return;
-
-    try {
-      await api.patch(`/v1/lamaran/${lamaranId}/`, { [field]: value });
-
-      // Tampilkan notifikasi sukses
-      toast({
-        title: "Sukses",
-        description: `Kolom ${field.replace('_', ' ')} berhasil diperbarui.`,
-      });
-
-    } catch (err) {
-      console.error(`Gagal simpan ${field}`, err);
-      // Tampilkan notifikasi error
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: `Tidak dapat memperbarui kolom ${field.replace('_', ' ')}.`,
-      });
-    }
-  };
-
-  if (type === 'select') {
-    return (
-      <Select value={value} onValueChange={(val) => { 
-        setValue(val); 
-        // Langsung panggil handleSave setelah nilai berubah
-        api.patch(`/v1/lamaran/${lamaranId}/`, { [field]: val })
-           .then(() => toast({ title: "Sukses", description: "Status kelulusan berhasil diperbarui." }))
-           .catch(() => toast({ variant: "destructive", title: "Gagal", description: "Tidak dapat memperbarui status." }));
-      }}>
-        <SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="lulus">Lulus</SelectItem>
-          <SelectItem value="tidak_lulus">Tidak Lulus</SelectItem>
-        </SelectContent>
-      </Select>
-    );
-  }
-  
-  return <Input value={value} onChange={e => setValue(e.target.value)} onBlur={handleSave} />;
-};
-
 
 export default function InputNilaiPage() {
   // PERBAIKAN 1: Gunakan satu state saja, yaitu 'data' dan 'setData'
@@ -141,7 +58,6 @@ export default function InputNilaiPage() {
       setInitialData([]);
     }
   };
-  const payload: any[] = [];
   const [pengaturanCetak, setPengaturanCetak] = useState({
     tempat: 'Banjarnegara',
     jabatan: 'Direktur RSUD Hj. Anna Lasmanah',
@@ -338,7 +254,7 @@ export default function InputNilaiPage() {
         7: { cellWidth: 15 },                  // TOTAL NILAI
         8: { cellWidth: 'auto' },               // KETERANGAN
       },
-      didDrawPage: (data) => {
+      didDrawPage: () => {
         doc.line(15, 32, doc.internal.pageSize.getWidth() - 15, 32);
       },
       margin: { top: 35, left: 15, right: 15 },

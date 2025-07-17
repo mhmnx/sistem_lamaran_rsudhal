@@ -1,6 +1,6 @@
 // frontend/src/pages/FormasiPage.tsx
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext'; // <-- Impor useAuth
 import { Button } from '@/components/ui/button';

@@ -54,17 +54,21 @@ export default function ApplicantForm({ onSuccess, initialData }: ApplicantFormP
     }
   }, [initialData, isEditMode]);
 
+  // PERBAIKAN 1: Correctly type the event and cast the target for file inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
+    const { name, value } = e.target;
+    // Check if the target is an HTMLInputElement and has files
+    const target = e.target as HTMLInputElement;
+    if (target.files) {
+      setFormData((prev: FormData) => ({ ...prev, [name]: target.files ? target.files[0] : null }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev: FormData) => ({ ...prev, [name]: value }));
     }
   };
-  
+ 
+  // PERBAIKAN 2: Add explicit types for function parameters
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: FormData) => ({ ...prev, [name]: value }));
   };
 
   // PERBAIKAN: Hanya ada satu fungsi handleSubmit

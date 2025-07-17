@@ -21,9 +21,6 @@ export default function VerifierLamaranDetailPage() {
   const { toast } = useToast();
 
   // State untuk form input nilai
-  const [jenisTes, setJenisTes] = useState('');
-  const [nilai, setNilai] = useState('');
-
   const fetchDetail = async () => {
     try {
       const response = await api.get(`/v1/lamaran/${lamaranId}/`);
@@ -70,26 +67,6 @@ export default function VerifierLamaranDetailPage() {
     } catch (error) {
       console.error("Gagal update checklist", error);
       toast({ variant: "destructive", title: "Gagal update checklist." });
-    }
-  };
-
-  const handleNilaiSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!jenisTes || !nilai) {
-      return toast({ variant: "destructive", title: "Input tidak lengkap", description: "Jenis tes dan nilai harus diisi." });
-    }
-    try {
-      await api.post(`/v1/lamaran/${lamaranId}/nilai/upsert/`, {
-        jenis_tes: jenisTes,
-        nilai: parseFloat(nilai),
-      });
-      toast({ title: "Sukses", description: "Nilai berhasil disimpan." });
-      setJenisTes('');
-      setNilai('');
-      fetchDetail();
-    } catch (error) {
-      toast({ variant: "destructive", title: "Gagal menyimpan nilai." });
-      console.error(error);
     }
   };
 
