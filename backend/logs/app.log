@@ -199,3 +199,11 @@ INFO 2025-07-17 11:31:56,667 basehttp "POST /api/auth/google/ HTTP/1.1" 200 381
 INFO 2025-07-17 11:31:56,737 basehttp "GET /api/me/ HTTP/1.1" 200 485
 INFO 2025-07-17 11:31:56,879 basehttp "GET /api/v1/dashboard-stats/ HTTP/1.1" 200 358
 INFO 2025-07-17 11:31:56,922 basehttp "GET /api/v1/dashboard-stats/ HTTP/1.1" 200 358
+INFO 2025-07-17 11:31:58,248 basehttp "GET /api/v1/pengaturan-cetak/ HTTP/1.1" 200 128
+INFO 2025-07-17 11:31:58,263 basehttp "GET /api/v1/pengaturan-cetak/ HTTP/1.1" 200 128
+INFO 2025-07-17 11:31:58,273 basehttp "GET /api/formasi/ HTTP/1.1" 200 376
+INFO 2025-07-17 11:31:58,288 basehttp "GET /api/formasi/ HTTP/1.1" 200 376
+INFO 2025-07-17 11:31:59,654 basehttp "GET /api/formasi/ HTTP/1.1" 200 376
+INFO 2025-07-17 11:31:59,689 basehttp "GET /api/formasi/ HTTP/1.1" 200 376
+INFO 2025-07-17 11:31:59,798 basehttp "GET /api/v1/lamaran/? HTTP/1.1" 200 5917
+INFO 2025-07-17 11:31:59,801 basehttp "GET /api/v1/lamaran/? HTTP/1.1" 200 5917
