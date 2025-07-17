@@ -6,6 +6,7 @@ RUN npm install
 COPY . .
 
 RUN chmod +x /app/node_modules/.bin/tsc
+RUN chmod +x node_modules/.bin/vite
 RUN npm run build
 
 # Tahap 2: Siapkan Nginx untuk menyajikan hasil build
