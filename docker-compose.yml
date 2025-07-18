@@ -12,9 +12,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
   frontend: # Service ini adalah Nginx yang menyajikan React
-    image: namauserdockerhub/sistem-lamaran-frontend:latest # <-- Ganti dengan ini
+    image: mhmnx/sistem-lamaran-frontend:latest # <-- Ganti dengan ini
     volumes:
       - media_volume:/app/media
     ports:
