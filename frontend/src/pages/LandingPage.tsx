@@ -189,13 +189,23 @@ export default function LandingPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {stats.statistik_formasi.map((formasi: any) => (
-                        <TableRow key={formasi.id}>
-                          <TableCell className="font-medium">{formasi.nama_formasi}</TableCell>
-                          <TableCell className="text-center">{formasi.kebutuhan}</TableCell>
-                          <TableCell className="text-center">{formasi.jumlah_pelamar}</TableCell>
+                      {/* PERBAIKAN UTAMA DI SINI */}
+                      {/* Pastikan `stats.statistik_formasi` ada dan merupakan array */}
+                      {stats.statistik_formasi && stats.statistik_formasi.length > 0 ? (
+                        stats.statistik_formasi.map((formasi: any) => (
+                          <TableRow key={formasi.id}>
+                            <TableCell className="font-medium">{formasi.nama_formasi}</TableCell>
+                            <TableCell className="text-center">{formasi.kebutuhan}</TableCell>
+                            <TableCell className="text-center">{formasi.jumlah_pelamar}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={3} className="h-24 text-center">
+                            Tidak ada rincian formasi untuk ditampilkan.
+                          </TableCell>
                         </TableRow>
-                      ))}
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
