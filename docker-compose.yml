@@ -1,7 +1,7 @@
 
 services:
   backend:
-    build: ./backend
+    image: mhmnx/sistem-lamaran-backend:latest # <-- Ganti dengan ini
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - media_volume:/app/media
@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   frontend: # Service ini adalah Nginx yang menyajikan React
-    build: ./frontend
+    image: namauserdockerhub/sistem-lamaran-frontend:latest # <-- Ganti dengan ini
     volumes:
       - media_volume:/app/media
     ports:
