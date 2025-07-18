@@ -23,10 +23,16 @@ services:
 
   db:
     image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: lamaran_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - ./backend/.env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
