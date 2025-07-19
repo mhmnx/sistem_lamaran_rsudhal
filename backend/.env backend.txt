@@ -1,7 +1,7 @@
 # Django Settings
 DEBUG=True
 SECRET_KEY=ganti_dengan_kunci_rahasia_di_produksi
-ALLOWED_HOSTS=localhost,127.0.0.1,api.domainanda.com,http://103.196.153.4
+ALLOWED_HOSTS=localhost,127.0.0.1,api.domainanda.com,103.196.153.4
 
 # Database Settings
 DB_NAME=lamaran_db

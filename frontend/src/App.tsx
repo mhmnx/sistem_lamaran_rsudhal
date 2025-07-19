@@ -20,6 +20,7 @@ import InformationPage from './pages/InformationPage';
 import VerifikasiBerkasPage from './pages/VerifikasiBerkasPage'; // <-- Impor halaman baru
 import VerifierLamaranDetailPage from './pages/VerifierLamaranDetailPage';
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -28,7 +29,7 @@ function App() {
     <Router>
       <Routes>
         {/* Rute Publik & Pintu Gerbang */}
-        <Route path="/login" element={<LandingPage />} />
+        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/" element={<LandingPage />} />
         
         {/* --- STRUKTUR BARU UNTUK PELAMAR --- */}

@@ -7,6 +7,8 @@ COPY . .
 
 RUN chmod +x /app/node_modules/.bin/tsc
 RUN chmod +x node_modules/.bin/vite
+ARG VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
 # Tahap 2: Siapkan Nginx untuk menyajikan hasil build

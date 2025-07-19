@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, Briefcase, Bell, Target, Award, Building, MapPin, LogIn, User, FileText, BellRing, Trophy, Mail, Phone } from 'lucide-react';
-import GoogleLoginButton from '@/components/GoogleLoginButton';
 import Footer from '@/components/layout/Footer';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input"; // Impor komponen tambahan
@@ -142,7 +141,9 @@ export default function LandingPage() {
             Bergabunglah bersama kami untuk memberikan pelayanan kesehatan terbaik kepada masyarakat.
           </p>
           <div className="mt-8">
-            <GoogleLoginButton />
+          <Link to="/login">
+            <Button size="lg">Login atau Daftar</Button>
+          </Link>
           </div>
         </div>
       </section>
